@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>JDX Earning</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#070b14;--card:rgba(255,255,255,.045);--card2:rgba(255,255,255,.08);--line:rgba(255,255,255,.1);--text:#eef3ff;--muted:#8d9bb8;--a2:#22d3ee;--ok:#34d399;--warn:#fbbf24;--bad:#fb7185;--grad:linear-gradient(135deg,#7c5cff,#22d3ee)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(1100px 600px at 0% -10%,#1f1650 0%,transparent 60%),radial-gradient(900px 500px at 110% 0%,#0b3a4a 0%,transparent 55%),var(--bg)}
+.hidden{display:none!important}
+h1{font-size:22px;margin:0}h2{font-size:17px;margin:0 0 6px}h3{font-size:15px;margin:0 0 6px}
+.muted{color:var(--muted)}.small{font-size:12px}.notice{font-size:13px;color:var(--muted)}
+.wrap{max-width:720px;margin:auto;padding:16px 14px 110px}
+.hero{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
+.avatar{width:48px;height:48px;border-radius:16px;background:var(--grad);display:grid;place-items:center;font-weight:800;font-size:20px;color:#081018;box-shadow:0 8px 24px rgba(34,211,238,.25);flex:none;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.glass{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin:12px 0;backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.hero-card{background:var(--grad);color:#07101c;border:0}
+.hero-card .muted{color:rgba(7,16,28,.7)}
+.balance{font-size:34px;font-weight:800;margin:4px 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.stat{background:rgba(7,16,28,.12);border-radius:14px;padding:10px}
+.stat b{display:block;font-size:16px;margin-top:2px}
+.stats-dark .stat{background:var(--card2);border:1px solid var(--line)}
+button{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;background:var(--grad);color:#07101c;font-weight:800;font-size:14px;transition:transform .08s,opacity .2s}
+button:active{transform:scale(.97)}
+button.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+button.danger{background:linear-gradient(135deg,#f43f5e,#fb7185);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+.block{width:100%}
+input,select{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--text);margin:6px 0 12px;font-size:15px}
+input:focus,select:focus{outline:2px solid var(--a2);border-color:transparent}
+label{display:block;color:var(--muted);font-size:11px;margin-top:10px;text-transform:uppercase;letter-spacing:.6px}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+.idbox{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(0,0,0,.3);border:1px dashed rgba(34,211,238,.5);border-radius:14px;padding:12px 14px;margin:8px 0 12px;font-family:ui-monospace,Menlo,monospace;word-break:break-all}
+.idbox b{color:var(--a2);font-size:17px}
+.progress{height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:10px 0 6px}
+.progress i{display:block;height:100%;background:var(--grad);border-radius:99px;transition:width .4s}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);margin:10px 0}
+.item>div:first-child{min-width:0;flex:1}
+.item p{margin:2px 0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.item .amt{font-weight:800;color:var(--a2);white-space:nowrap}
+.pill{display:inline-block;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;background:var(--card2);color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.st-pending{background:rgba(251,191,36,.15);color:var(--warn)}
+.st-accepted,.st-credited{background:rgba(52,211,153,.15);color:var(--ok)}
+.st-rejected{background:rgba(251,113,133,.15);color:var(--bad)}
+.status{margin-top:10px;color:var(--ok);font-size:13px;white-space:pre-wrap}
+.empty{color:var(--muted);text-align:center;padding:18px 0}
+.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;width:min(420px,calc(100% - 24px));display:flex;gap:6px;padding:8px;background:rgba(15,20,35,.85);border:1px solid var(--line);border-radius:20px;backdrop-filter:blur(14px);box-shadow:0 12px 30px rgba(0,0,0,.45);z-index:5}
+.bottom-nav button{flex:1;background:transparent;color:var(--muted);padding:8px 2px;border-radius:14px;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bottom-nav .ic{font-size:18px}
+.bottom-nav button.active{background:var(--card2);color:var(--a2);box-shadow:inset 0 0 0 1px var(--line)}
+.toast{position:fixed;top:14px;left:50%;transform:translate(-50%,-150%);background:#0f1729;border:1px solid var(--line);padding:12px 16px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);transition:transform .3s;z-index:9;font-size:14px;max-width:92%;text-align:center}
+.toast.show{transform:translate(-50%,0)}
+
+/* Admin panel */
+#adminView .admin-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0 14px}
+#adminView .admin-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+#adminView .admin-tabs button{background:var(--card2);color:var(--text);border:1px solid var(--line);padding:9px 12px;font-size:13px}
+#adminView .admin-tabs button.active{background:var(--grad);color:#07101c;border:0}
+#adminView .admin-page{display:none}
+#adminView .admin-page.active{display:block}
+#adminView .task-row{border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;background:var(--card2)}
+#adminView .fields{display:grid;gap:0 12px}
+@media(min-width:600px){#adminView .fields{grid-template-columns:1fr 1fr}}
+#adminView .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#adminView .row-actions button{flex:1}
+#adminView .topline{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#adminView .list-box p{padding:10px;background:var(--card2);border-radius:12px;overflow-wrap:anywhere;margin:8px 0}
+</style>
+</head>
+<body>
+
+<!-- ============ USER PANEL (everyone) ============ -->
+<div id="userView">
+  <main class="wrap">
+    <div class="hero">
+      <div class="avatar" id="avatar">J</div>
+      <div style="flex:1;min-width:0"><h1 id="appName">JDX Earning</h1><div class="muted small" id="welcome">Welcome</div></div>
+      <button id="openAdmin" class="ghost hidden" type="button">⚙ Admin</button>
+    </div>
+
+    <section id="tabTasks">
+      <div class="glass hero-card">
+        <div class="small">Available balance</div>
+        <div class="balance"><span id="balance">0.00</span> <span id="currency">৳</span></div>
+        <div class="stats">
+          <div class="stat"><span class="small">Referrals</span><b id="statRefs">0</b></div>
+          <div class="stat"><span class="small">Per referral</span><b id="statReward">—</b></div>
+          <div class="stat"><span class="small">Min withdraw</span><b id="statMin">—</b></div>
+        </div>
+      </div>
+      <div class="glass"><h2>🎯 Tasks</h2><p class="notice">Complete a task using its instructions. Rewards are credited after verification.</p><div id="tasks"><div class="empty">Loading tasks…</div></div></div>
+      <div class="glass"><h2>📢 Payment proof channels</h2><p class="notice">Follow these channels for payment updates and proof.</p><div id="proofChannels"><div class="empty">Loading channels…</div></div></div>
+    </section>
+
+    <section id="tabRefer" class="hidden">
+      <div class="glass">
+        <h2>👥 Invite & earn</h2>
+        <p class="notice">Share your link. When someone opens it and starts the bot, you get <b id="refRewardText">—</b>.</p>
+        <label>Your Telegram ID</label>
+        <div class="idbox"><b id="refId">—</b></div>
+        <label>Your referral link</label>
+        <div class="idbox"><span id="refLink" class="small">Loading…</span></div>
+        <div class="row">
+          <button id="copyRef" class="ghost block" type="button">📋 Copy link</button>
+          <button id="shareRef" class="block" type="button">📤 Share</button>
+        </div>
+        <div class="row" style="margin-top:16px"><span class="small muted">Qualified referrals</span><b id="refCount">0</b></div>
+        <div class="progress"><i id="refBar" style="width:0%"></i></div>
+        <p class="small muted" id="refNeed"></p>
+      </div>
+      <div class="glass"><h2>My referrals</h2><div id="referralList"><div class="empty">Loading…</div></div></div>
+    </section>
+
+    <section id="tabWithdraw" class="hidden">
+      <div class="glass">
+        <h2>💸 Withdraw</h2>
+        <p class="notice" id="withdrawRules">Withdrawal requirements are set by the admin.</p>
+        <label>Amount</label><input id="amount" type="number" min="0" step="any" placeholder="Enter amount">
+        <label>Payment method</label><select id="method"><option value="">Choose method</option></select>
+        <label>Wallet / account number</label><input id="wallet" placeholder="Enter your payment account">
+        <button id="requestWithdraw" class="block" type="button">Submit withdrawal request</button>
+        <div id="withdrawStatus" class="status"></div>
+      </div>
+      <div class="glass"><h2>History</h2><div id="withdrawals"><div class="empty">Loading…</div></div></div>
+    </section>
+
+    <div id="appStatus" class="status"></div>
+    <p class="notice" style="margin-top:18px">Security: rewards, balances and withdrawal approvals must be verified in trusted backend code. Do not let users write their own balances in Firebase rules.</p>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="active" data-tab="tabTasks" type="button"><span class="ic">🎯</span>Tasks</button>
+    <button data-tab="tabRefer" type="button"><span class="ic">👥</span>Refer</button>
+    <button data-tab="tabWithdraw" type="button"><span class="ic">💸</span>Withdraw</button>
+  </nav>
+</div>
+
+<!-- ============ ADMIN PANEL (admin IDs only) ============ -->
+<div id="adminView" class="hidden">
+  <main class="wrap">
+    <div class="admin-top">
+      <div><h1>⚙ Admin Panel</h1><div class="muted small">Only visible to admin accounts</div></div>
+      <button id="backToUser" class="ghost" type="button">← User panel</button>
+    </div>
+    <nav class="admin-tabs">
+      <button type="button" class="admin-tab active" data-page="adminSettings">Settings</button>
+      <button type="button" class="admin-tab" data-page="adminTasks">Tasks</button>
+      <button type="button" class="admin-tab" data-page="adminReferrals">Referrals</button>
+      <button type="button" class="admin-tab" data-page="adminWallets">Wallets</button>
+      <button type="button" class="admin-tab" data-page="adminChannels">Channels</button>
+      <button type="button" class="admin-tab" data-page="adminWithdrawRequests">Withdrawals</button>
+    </nav>
+
+    <section id="adminSettings" class="admin-page active">
+      <div class="glass">
+        <h2>App settings</h2>
+        <label>Bot name</label><input id="botName">
+        <label>Currency</label><input id="adminCurrency" value="৳">
+        <label>Minimum withdrawal</label><input id="minWithdraw" type="number" min="0">
+        <label>Minimum qualified referrals</label><input id="minReferral" type="number" min="0">
+        <label>Reward per referral (amount each referrer earns)</label><input id="adminReferralReward" type="number" min="0" step="any" placeholder="e.g. 10">
+        <button onclick="saveSettings()" class="block" type="button">Save settings</button>
+      </div>
+    </section>
+
+    <section id="adminTasks" class="admin-page">
+      <div class="glass">
+        <div class="topline"><h2>Add tasks</h2><span class="small muted" id="taskCount">1 task row</span></div>
+        <p class="notice">Add several tasks, then press “Save all tasks”.</p>
+        <div id="taskRows"></div>
+        <div class="row-actions">
+          <button type="button" class="ghost" onclick="addTaskRow()">+ Add task</button>
+          <button type="button" onclick="saveAllTasks()">Save all tasks</button>
+        </div>
+        <div id="taskMessage" class="small muted" role="status"></div>
+      </div>
+      <div class="glass"><h2>Existing tasks</h2><div id="taskList" class="list-box">Loading tasks…</div></div>
+    </section>
+
+    <section id="adminReferrals" class="admin-page">
+      <div class="glass">
+        <h2>Referrals</h2>
+        <p class="notice">Each new user who starts the bot through a referral link appears here. Press “Credit reward” to add the reward to the referrer's balance (once per referral).</p>
+        <div class="row" style="margin:8px 0"><span class="small muted">Pending</span><b id="refPendingCount">0</b><span class="small muted">Credited</span><b id="refCreditedCount">0</b></div>
+        <div id="referralAdminList" class="list-box">Loading referrals…</div>
+      </div>
+    </section>
+
+    <section id="adminWallets" class="admin-page">
+      <div class="glass">
+        <h2>Payment methods</h2>
+        <label>Wallet name</label><input id="walletName" placeholder="bKash, Nagad, Binance">
+        <button onclick="addWallet()" class="block" type="button">Add wallet</button>
+        <div id="walletList" class="list-box"></div>
+      </div>
+    </section>
+
+    <section id="adminChannels" class="admin-page">
+      <div class="glass">
+        <h2>Payment proof channels</h2>
+        <p class="notice">Add channel names and links, then save them together.</p>
+        <div id="channelRows"></div>
+        <div class="row-actions">
+          <button type="button" class="ghost" onclick="addChannelRow()">+ Add channel</button>
+          <button type="button" onclick="saveAllChannels()">Save channels</button>
+        </div>
+        <div id="channelMessage" class="small muted" role="status"></div>
+      </div>
+      <div class="glass"><h2>Existing channels</h2><div id="channelList" class="list-box">Loading channels…</div></div>
+    </section>
+
+    <section id="adminWithdrawRequests" class="admin-page">
+      <div class="glass">
+        <h2>Withdrawal requests</h2>
+        <p class="notice">New requests appear here automatically. Accept or reject each one.</p>
+        <div id="withdrawRequestList">Loading withdrawal requests…</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, push, set, update, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ===== SETTINGS =====
+const ADMIN_IDS = ["7150895390"];          // admin Telegram IDs (only these see the admin panel)
+const BOT_USERNAME = "jdxearning1bot";      // referral links: https://t.me/jdxearning1bot?start=<telegram id>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC5Dj2O3Y5nHifH0DthRiOSP4XNMlOxj_M",
+  authDomain: "jdx-earning-f539d.firebaseapp.com",
+  databaseURL: "https://jdx-earning-f539d-default-rtdb.firebaseio.com",
+  projectId: "jdx-earning-f539d",
+  storageBucket: "jdx-earning-f539d.firebasestorage.app",
+  messagingSenderId: "188950004397",
+  appId: "1:188950004397:web:189832f75c6a9501593c24",
+  measurementId: "G-PCZ0B942WD"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const tg = window.Telegram?.WebApp;
+tg?.ready();
+tg?.expand();
+
+// ===== HELPERS =====
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const tgUser = tg?.initDataUnsafe?.user;
+const userId = tgUser?.id ? String(tgUser.id) : "";
+const isAdmin = !!userId && ADMIN_IDS.map(String).includes(userId);
+const displayName = tgUser?.first_name || "Guest";
+const money = (value, cur) => `${cur || "৳"}${Number(value || 0).toFixed(2)}`;
+const botLink = id => `https://t.me/${BOT_USERNAME}?start=${id}`;
+const statusClass = s => `st-${(s || "pending").toLowerCase()}`;
+const fmtDate = t => t ? new Date(t).toLocaleString() : "—";
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    const t = el("textarea"); t.value = text; document.body.append(t); t.select();
+    const ok = document.execCommand("copy"); t.remove(); return ok;
+  }
+}
+
+// Profile picture from Telegram (photo_url); falls back to the first letter of the name
+{
+  const avatarBox = $("avatar");
+  const initial = displayName.charAt(0).toUpperCase();
+  const showInitial = () => { avatarBox.innerHTML = ""; avatarBox.textContent = initial; };
+  showInitial();
+  if (tgUser?.photo_url) {
+    const img = el("img");
+    img.alt = displayName;
+    img.referrerPolicy = "no-referrer";
+    img.onerror = showInitial;
+    img.src = tgUser.photo_url;
+    avatarBox.innerHTML = "";
+    avatarBox.append(img);
+  }
+}
+// Greeting with the user's name (and @username when Telegram provides it)
+$("welcome").textContent = `Welcome, ${displayName}` + (tgUser?.username ? ` · @${tgUser.username}` : "");
+
+// ===== VIEW SWITCHING =====
+function showView(view) {
+  $("userView").classList.toggle("hidden", view === "admin");
+  $("adminView").classList.toggle("hidden", view !== "admin");
+  window.scrollTo(0, 0);
+}
+$("openAdmin").classList.toggle("hidden", !isAdmin);
+$("openAdmin").addEventListener("click", () => { if (isAdmin) showView("admin"); });
+$("backToUser").addEventListener("click", () => showView("user"));
+
+// ===== USER PANEL STATE =====
+let settings = {}, account = {}, tasks = {}, currency = "৳";
+
+document.querySelectorAll(".bottom-nav button").forEach(button => button.addEventListener("click", () => {
+  document.querySelectorAll(".bottom-nav button").forEach(b => b.classList.toggle("active", b === button));
+  ["tabTasks", "tabRefer", "tabWithdraw"].forEach(id => $(id).classList.toggle("hidden", id !== button.dataset.tab));
+}));
+
+function showStatus(message, error = false) {
+  $("appStatus").textContent = message;
+  $("appStatus").style.color = error ? "var(--bad)" : "var(--ok)";
+}
+
+function renderTasks() {
+  const host = $("tasks"); host.innerHTML = "";
+  const entries = Object.entries(tasks).filter(([, t]) => t && t.active !== false);
+  if (!entries.length) { host.append(el("div", "empty", "No tasks are available right now.")); return; }
+  entries.forEach(([, task]) => {
+    const row = el("div", "item");
+    const info = el("div");
+    info.append(el("h3", "", task.title || "Task"), el("p", "", task.description || "Follow the task instructions."));
+    const right = el("div", "", "");
+    right.style.textAlign = "right";
+    right.append(el("div", "amt", money(task.reward, currency)));
+    const open = el("button", "ghost", "Open"); open.style.marginTop = "6px"; open.style.padding = "8px 12px";
+    open.addEventListener("click", () => {
+      if (task.url) window.open(task.url, "_blank", "noopener");
+      showStatus("Task opened. Reward credit is verified by the admin/backend.");
+    });
+    right.append(open);
+    row.append(info, right); host.append(row);
+  });
+}
+
+function renderPaymentMethods() {
+  const select = $("method"); select.innerHTML = '<option value="">Choose method</option>';
+  const methods = settings.paymentMethods || ["bKash", "Nagad", "Binance"];
+  (Array.isArray(methods) ? methods : Object.values(methods)).forEach(method => {
+    const name = typeof method === "string" ? method : method.name;
+    if (!name) return;
+    const o = el("option", "", name); o.value = name; select.append(o);
+  });
+}
+
+function renderWithdrawals(data) {
+  const host = $("withdrawals"); host.innerHTML = "";
+  const entries = Object.entries(data || {}).reverse();
+  if (!entries.length) { host.append(el("div", "empty", "No requests yet.")); return; }
+  entries.forEach(([, item]) => {
+    const row = el("div", "item");
+    const info = el("div");
+    info.append(el("div", "amt", money(item.amount, currency)), el("p", "", `${item.method || ""} • ${fmtDate(item.createdAt)}`), el("p", "", `Account: ${item.wallet || "—"}`));
+    const st = (item.status || "pending").toLowerCase();
+    row.append(info, el("span", `pill ${statusClass(st)}`, st));
+    host.append(row);
+  });
+}
+
+function renderReferrals(data) {
+  const host = $("referralList"); host.innerHTML = "";
+  const entries = Object.entries(data || {}).reverse();
+  if (!entries.length) { host.append(el("div", "empty", "No referrals yet. Share your link to start earning!")); return; }
+  entries.forEach(([newUserId, r]) => {
+    const row = el("div", "item");
+    const info = el("div");
+    info.append(el("h3", "", r.name || `User ${newUserId}`), el("p", "", `Joined ${fmtDate(r.createdAt)}`));
+    const st = (r.status || "pending").toLowerCase();
+    const right = el("div"); right.style.textAlign = "right";
+    right.append(el("div", "amt", money(r.amount ?? settings.referralReward, currency)), el("span", `pill ${statusClass(st)}`, st));
+    row.append(info, right); host.append(row);
+  });
+}
+
+function renderChannels(data) {
+  const host = $("proofChannels"); host.innerHTML = "";
+  const channels = Object.entries(data || {}).filter(([, c]) => c && c.active !== false);
+  if (!channels.length) { host.append(el("div", "empty", "No proof channels yet.")); return; }
+  channels.forEach(([, c]) => {
+    const row = el("div", "item");
+    const info = el("div"); info.append(el("h3", "", c.name || "Payment channel"));
+    const a = el("a", "", "Open ↗"); a.href = c.link || "#"; a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.style.cssText = "color:var(--a2);font-weight:700;text-decoration:none";
+    row.append(info, a); host.append(row);
+  });
+}
+
+function updateReferralUI() {
+  const minRefs = Number(settings.minimumReferrals ?? settings.minReferrals ?? 0);
+  const qualified = Number(account.qualifiedReferrals || 0);
+  const reward = Number(settings.referralReward ?? 0);
+  $("refRewardText").textContent = reward > 0 ? money(reward, currency) : "a reward set by the admin";
+  $("statReward").textContent = reward > 0 ? money(reward, currency) : "—";
+  $("refCount").textContent = qualified;
+  $("statRefs").textContent = qualified;
+  const pct = minRefs > 0 ? Math.min(100, Math.round(qualified / minRefs * 100)) : 100;
+  $("refBar").style.width = pct + "%";
+  $("refNeed").textContent = minRefs > 0
+    ? (qualified >= minRefs ? "✅ You have reached the minimum referrals for withdrawal." : `${minRefs - qualified} more qualified referral(s) to unlock withdrawal.`)
+    : "No referral requirement for withdrawal.";
+}
+
+function loadUserPanel() {
+  onValue(ref(db, "settings"), snap => {
+    settings = snap.val() || {};
+    currency = settings.currency || "৳";
+    $("appName").textContent = settings.botName || "JDX Earning";
+    $("currency").textContent = currency;
+    const minW = settings.minimumWithdrawal ?? settings.minWithdrawal ?? 0;
+    const minR = settings.minimumReferrals ?? settings.minReferrals ?? 0;
+    $("withdrawRules").textContent = `Minimum withdrawal: ${money(minW, currency)}. Minimum qualified referrals: ${Number(minR)}.`;
+    $("statMin").textContent = money(minW, currency);
+    renderPaymentMethods(); renderTasks(); updateReferralUI();
+  }, err => { console.error(err); showStatus("Could not load settings. Check Firebase rules.", true); });
+
+  onValue(ref(db, "tasks"), snap => { tasks = snap.val() || {}; renderTasks(); });
+  onValue(ref(db, "paymentChannels"), snap => renderChannels(snap.val()));
+
+  if (!userId) {
+    showStatus("Open this page from your Telegram bot to load your account. Browser preview has no Telegram identity.", true);
+    $("refId").textContent = "Open in Telegram";
+    $("refLink").textContent = "Open inside Telegram to get your link";
+    $("copyRef").disabled = true; $("shareRef").disabled = true;
+    return;
+  }
+
+  // Referral link uses the user's real Telegram numeric ID
+  $("refId").textContent = userId;
+  $("refLink").textContent = botLink(userId);
+
+  onValue(ref(db, `users/${userId}`), snap => {
+    account = snap.val() || {};
+    $("balance").textContent = Number(account.balance || 0).toFixed(2);
+    updateReferralUI();
+  }, err => { console.error(err); showStatus("Could not load your account. Check Firebase permissions.", true); });
+
+  onValue(ref(db, `referrals/${userId}`), snap => renderReferrals(snap.val()));
+  onValue(ref(db, `withdrawals/${userId}`), snap => renderWithdrawals(snap.val()), () => {
+    $("withdrawStatus").textContent = "Could not load withdrawal history.";
+  });
+}
+
+$("copyRef").addEventListener("click", async () => {
+  const ok = await copyText(botLink(userId));
+  toast(ok ? "✅ Referral link copied!" : "Copy failed — select the link and copy it.");
+});
+$("shareRef").addEventListener("click", () => {
+  const link = botLink(userId);
+  const text = `Join ${$("appName").textContent} and start earning! ${link}`;
+  const share = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`Join ${$("appName").textContent} and start earning!`)}`;
+  if (tg?.openTelegramLink) tg.openTelegramLink(share); else window.open(share, "_blank");
+});
+
+$("requestWithdraw").addEventListener("click", async () => {
+  if (!userId) { $("withdrawStatus").textContent = "Open the Mini App inside Telegram first."; return; }
+  const amount = Number($("amount").value);
+  const method = $("method").value;
+  const wallet = $("wallet").value.trim();
+  const min = Number(settings.minimumWithdrawal ?? settings.minWithdrawal ?? 0);
+  const minR = Number(settings.minimumReferrals ?? settings.minReferrals ?? 0);
+  if (!Number.isFinite(amount) || amount < min) { $("withdrawStatus").textContent = `Minimum withdrawal is ${money(min, currency)}.`; return; }
+  if (amount > Number(account.balance || 0)) { $("withdrawStatus").textContent = "Amount is greater than your balance."; return; }
+  if (!method || !wallet) { $("withdrawStatus").textContent = "Choose a payment method and enter your account."; return; }
+  if (Number(account.qualifiedReferrals || 0) < minR) { $("withdrawStatus").textContent = `You need at least ${minR} qualified referrals.`; return; }
+  try {
+    // Production: validate identity, balance and referrals on a backend to prevent duplicates/overspending.
+    await set(push(ref(db, `withdrawals/${userId}`)), {
+      amount, method, wallet, status: "pending", createdAt: Date.now(),
+      telegramUserId: userId,
+      username: tgUser?.username || "",
+      firstName: tgUser?.first_name || "",
+      lastName: tgUser?.last_name || "",
+      displayName: [tgUser?.first_name, tgUser?.last_name].filter(Boolean).join(" ")
+    });
+    $("withdrawStatus").textContent = "✅ Request submitted. Admin review is required.";
+    $("amount").value = ""; $("wallet").value = "";
+  } catch (err) {
+    console.error(err);
+    $("withdrawStatus").textContent = "Request failed. Check database permissions.";
+  }
+});
+
+// ===== ADMIN PANEL (runs only for admin IDs) =====
+function initAdmin() {
+  let rowNumber = 0, channelRowNumber = 0, currentSettings = {};
+
+  function showAdminPage(id) {
+    document.querySelectorAll("#adminView .admin-page").forEach(p => p.classList.toggle("active", p.id === id));
+    document.querySelectorAll("#adminView .admin-tab").forEach(b => b.classList.toggle("active", b.dataset.page === id));
+  }
+  document.querySelectorAll("#adminView .admin-tab").forEach(b => b.addEventListener("click", () => showAdminPage(b.dataset.page)));
+
+  // --- Settings ---
+  onValue(ref(db, "settings"), snap => {
+    const s = snap.val() || {};
+    currentSettings = s;
+    $("botName").value = s.botName || "";
+    $("adminCurrency").value = s.currency || "৳";
+    $("minWithdraw").value = s.minimumWithdrawal ?? s.minWithdrawal ?? s.minWithdraw ?? 100;
+    $("minReferral").value = s.minimumReferrals ?? s.minReferrals ?? s.minReferral ?? 5;
+    $("adminReferralReward").value = s.referralReward ?? 0;
+  });
+
+  window.saveSettings = async () => {
+    const minWithdrawal = Number($("minWithdraw").value);
+    const minReferrals = Number($("minReferral").value);
+    const referralReward = Number($("adminReferralReward").value || 0);
+    if (!Number.isFinite(minWithdrawal) || minWithdrawal < 0 || !Number.isInteger(minReferrals) || minReferrals < 0 || !Number.isFinite(referralReward) || referralReward < 0) {
+      toast("Enter valid values for all settings."); return;
+    }
+    try {
+      await update(ref(db, "settings"), {
+        botName: $("botName").value.trim(),
+        currency: $("adminCurrency").value.trim() || "৳",
+        minimumWithdrawal: minWithdrawal,
+        minimumReferrals: minReferrals,
+        referralReward,
+        minWithdrawal, minReferrals // aliases used by older data
+      });
+      toast("✅ Settings saved");
+    } catch (err) { console.error(err); toast("Could not save settings. Check Firebase permissions."); }
+  };
+
+  // --- Tasks ---
+  function refreshTaskCount() {
+    const n = $("taskRows").children.length;
+    $("taskCount").textContent = `${n} row${n === 1 ? "" : "s"}`;
+  }
+  function addTaskRow(values = {}) {
+    rowNumber++;
+    const row = el("div", "task-row");
+    const fields = el("div", "fields");
+    const make = (labelText, placeholder, value, type = "text", field) => {
+      const wrap = el("div");
+      const input = el("input");
+      input.type = type; input.placeholder = placeholder; input.value = value ?? ""; input.dataset.field = field;
+      wrap.append(el("label", "", labelText), input); fields.append(wrap); return input;
+    };
+    make("Task title", "Enter task name", values.title || "", "text", "title");
+    make("Task description", "What users should do", values.description || "", "text", "description");
+    const rew = make("Reward amount", "Enter reward", values.reward ?? "", "number", "reward"); rew.min = "0.01";
+    make("Task link", "https://example.com", values.url || "", "text", "url");
+    const actions = el("div", "row-actions");
+    const remove_ = el("button", "danger", "Remove row"); remove_.type = "button";
+    remove_.onclick = () => { row.remove(); refreshTaskCount(); };
+    actions.append(remove_);
+    row.append(el("h3", "", `Task ${rowNumber}`), fields, actions);
+    $("taskRows").append(row); refreshTaskCount();
+  }
+  window.addTaskRow = () => addTaskRow();
+
+  window.saveAllTasks = async () => {
+    const rows = [...$("taskRows").querySelectorAll(".task-row")];
+    if (!rows.length) { $("taskMessage").textContent = "Add at least one task row first."; return; }
+    const prepared = [];
+    for (let i = 0; i < rows.length; i++) {
+      const g = name => rows[i].querySelector(`[data-field="${name}"]`).value.trim();
+      const title = g("title"), description = g("description"), url = g("url");
+      const reward = Number(rows[i].querySelector('[data-field="reward"]').value);
+      if (!title || !Number.isFinite(reward) || reward <= 0) { $("taskMessage").textContent = `Enter a title and a reward above 0 for Task ${i + 1}.`; return; }
+      if (url) {
+        try { const u = new URL(url); if (!["http:", "https:"].includes(u.protocol)) throw 0; }
+        catch { $("taskMessage").textContent = `Enter a valid http/https link for Task ${i + 1}.`; return; }
+      }
+      prepared.push({ title, name: title, description, reward, url, link: url, active: true, createdAt: Date.now() });
+    }
+    try {
+      await Promise.all(prepared.map(t => set(push(ref(db, "tasks")), t)));
+      $("taskMessage").textContent = `✅ Saved ${prepared.length} task(s).`;
+      $("taskRows").innerHTML = ""; addTaskRow();
+    } catch (err) { console.error(err); $("taskMessage").textContent = "Could not save tasks. Check Firebase permissions."; }
+  };
+
+  onValue(ref(db, "tasks"), snap => {
+    const host = $("taskList"); host.innerHTML = "";
+    const entries = Object.entries(snap.val() || {});
+    if (!entries.length) { host.textContent = "No tasks have been added yet."; return; }
+    entries.forEach(([id, t]) => {
+      const card = el("div", "task-row");
+      card.append(el("h3", "", t.title || t.name || "Untitled task"));
+      card.append(el("p", "small muted", `Reward: ${t.reward ?? 0} ${currentSettings.currency || "৳"} · ${t.active === false ? "Inactive" : "Active"}`));
+      if (t.description) card.append(el("p", "small muted", t.description));
+      const actions = el("div", "row-actions");
+      const toggle = el("button", "ghost", t.active === false ? "Activate" : "Deactivate"); toggle.type = "button";
+      toggle.onclick = async () => { try { await update(ref(db, `tasks/${id}`), { active: t.active === false }); } catch { toast("Could not update task."); } };
+      const del = el("button", "danger", "Delete"); del.type = "button";
+      del.onclick = async () => { if (confirm("Delete this task?")) { try { await remove(ref(db, `tasks/${id}`)); } catch { toast("Could not delete task."); } } };
+      actions.append(toggle, del); card.append(actions); host.append(card);
+    });
+  });
+
+  // --- Referrals ---
+  onValue(ref(db, "referrals"), snap => {
+    const host = $("referralAdminList"); host.innerHTML = "";
+    const all = snap.val() || {};
+    const list = [];
+    Object.entries(all).forEach(([referrerId, byUser]) => {
+      Object.entries(byUser || {}).forEach(([newUserId, rec]) => {
+        if (rec && typeof rec === "object") list.push({ referrerId, newUserId, rec });
+      });
+    });
+    list.sort((a, b) => Number(b.rec.createdAt || 0) - Number(a.rec.createdAt || 0));
+    $("refPendingCount").textContent = list.filter(x => (x.rec.status || "pending") === "pending").length;
+    $("refCreditedCount").textContent = list.filter(x => x.rec.status === "credited").length;
+    if (!list.length) { host.textContent = "No referrals yet."; return; }
+    list.forEach(({ referrerId, newUserId, rec }) => {
+      const card = el("div", "task-row");
+      card.append(el("h3", "", rec.name || `User ${newUserId}`));
+      card.append(el("p", "small muted", `Referred by: ${referrerId}`));
+      card.append(el("p", "small muted", `New user ID: ${newUserId} · ${fmtDate(rec.createdAt)}`));
+      const st = (rec.status || "pending").toLowerCase();
+      const row = el("div", "row-actions");
+      row.append(el("span", `pill ${statusClass(st)}`, st));
+      const credit = el("button", "", st === "credited" ? "Credited" : `Credit ${money(rec.amount ?? currentSettings.referralReward ?? 0, currentSettings.currency)}`);
+      credit.type = "button"; credit.disabled = st === "credited";
+      credit.onclick = async () => {
+        if (!confirm("Credit this referral reward to the referrer?")) return;
+        try {
+          // 1) Mark the referral as credited only if it is still pending (prevents double credit)
+          const marked = await runTransaction(ref(db, `referrals/${referrerId}/${newUserId}`), cur => {
+            if (!cur || cur.status === "credited") return; // abort
+            return { ...cur, status: "credited", creditedAt: Date.now() };
+          });
+          if (!marked.committed) { toast("Already credited or not found."); return; }
+          // 2) Add the reward to the referrer's balance and count the qualified referral
+          const amount = Number(rec.amount ?? currentSettings.referralReward ?? 0);
+          await runTransaction(ref(db, `users/${referrerId}`), u => ({
+            ...(u || {}),
+            balance: Number((u || {}).balance || 0) + amount,
+            qualifiedReferrals: Number((u || {}).qualifiedReferrals || 0) + 1
+          }));
+          toast("✅ Reward credited");
+        } catch (err) { console.error(err); toast("Could not credit reward. Check permissions."); }
+      };
+      row.append(credit); card.append(row); host.append(card);
+    });
+  });
+
+  // --- Wallets ---
+  window.addWallet = async () => {
+    const name = $("walletName").value.trim(); if (!name) return;
+    try { await set(push(ref(db, "wallets")), { name, active: true }); $("walletName").value = ""; toast("✅ Wallet added"); }
+    catch { toast("Could not add wallet."); }
+  };
+  onValue(ref(db, "wallets"), snap => {
+    const host = $("walletList"); host.innerHTML = "";
+    const entries = Object.entries(snap.val() || {});
+    if (!entries.length) { host.textContent = "No wallets yet."; return; }
+    entries.forEach(([id, w]) => {
+      const row = el("p", "", w.name || "Wallet");
+      const del = el("button", "danger", "Delete"); del.type = "button"; del.style.marginLeft = "10px"; del.style.padding = "6px 10px";
+      del.onclick = async () => { if (confirm("Delete this wallet?")) await remove(ref(db, `wallets/${id}`)); };
+      row.append(del); host.append(row);
+    });
+  });
+
+  // --- Channels ---
+  function addChannelRow(values = {}) {
+    channelRowNumber++;
+    const row = el("div", "task-row");
+    const name = el("input"); name.placeholder = "Channel name"; name.value = values.name || ""; name.dataset.field = "name";
+    const link = el("input"); link.placeholder = "https://t.me/yourchannel"; link.value = values.link || ""; link.dataset.field = "link";
+    const rm = el("button", "danger", "Remove row"); rm.type = "button"; rm.onclick = () => row.remove();
+    row.append(el("h3", "", `Channel ${channelRowNumber}`), name, link, rm);
+    $("channelRows").append(row);
+  }
+  window.addChannelRow = () => addChannelRow();
+  window.saveAllChannels = async () => {
+    const rows = [...$("channelRows").querySelectorAll(".task-row")];
+    if (!rows.length) { $("channelMessage").textContent = "Add at least one channel row first."; return; }
+    const channels = [];
+    for (let i = 0; i < rows.length; i++) {
+      const name = rows[i].querySelector('[data-field="name"]').value.trim();
+      const link = rows[i].querySelector('[data-field="link"]').value.trim();
+      if (!name || !link) { $("channelMessage").textContent = `Enter both name and link for Channel ${i + 1}.`; return; }
+      try { const u = new URL(link); if (!["http:", "https:"].includes(u.protocol)) throw 0; }
+      catch { $("channelMessage").textContent = `Enter a valid http/https link for Channel ${i + 1}.`; return; }
+      channels.push({ name, link, active: true, createdAt: Date.now() });
+    }
+    try {
+      await Promise.all(channels.map(c => set(push(ref(db, "paymentChannels")), c)));
+      $("channelMessage").textContent = `✅ Saved ${channels.length} channel(s).`;
+      $("channelRows").innerHTML = ""; addChannelRow();
+    } catch { $("channelMessage").textContent = "Could not save channels. Check Firebase permissions."; }
+  };
+  onValue(ref(db, "paymentChannels"), snap => {
+    const host = $("channelList"); host.innerHTML = "";
+    const entries = Object.entries(snap.val() || {});
+    if (!entries.length) { host.textContent = "No channels yet."; return; }
+    entries.forEach(([id, c]) => {
+      const row = el("p", "", `${c.name || "Channel"} — ${c.link || ""}`);
+      const del = el("button", "danger", "Delete"); del.type = "button"; del.style.marginLeft = "10px"; del.style.padding = "6px 10px";
+      del.onclick = async () => { if (confirm("Delete this channel?")) await remove(ref(db, `paymentChannels/${id}`)); };
+      row.append(del); host.append(row);
+    });
+  });
+
+  // --- Withdrawal requests ---
+  function infoLine(host, label, value) {
+    const p = el("p", "small muted");
+    const b = el("b", "", label + ": ");
+    p.append(b, document.createTextNode(value == null || value === "" ? "Not provided" : String(value)));
+    host.append(p);
+  }
+  onValue(ref(db, "withdrawals"), snap => {
+    const host = $("withdrawRequestList"); host.innerHTML = "";
+    const requests = [];
+    Object.entries(snap.val() || {}).forEach(([uid, reqs]) => {
+      Object.entries(reqs || {}).forEach(([rid, r]) => { if (r && typeof r === "object") requests.push({ uid, rid, r }); });
+    });
+    requests.sort((a, b) => Number(b.r.createdAt || 0) - Number(a.r.createdAt || 0));
+    if (!requests.length) { host.textContent = "No withdrawal requests yet."; return; }
+    requests.forEach(({ uid, rid, r }) => {
+      const card = el("div", "task-row");
+      const st = (r.status || "pending").toLowerCase();
+      const title = el("h3", "", (r.username ? "@" + String(r.username).replace(/^@/, "") : (r.firstName || "Telegram user")) + " — " + money(r.amount, currentSettings.currency));
+      card.append(title, el("span", `pill ${statusClass(st)}`, st));
+      infoLine(card, "Telegram ID", r.telegramUserId || uid);
+      infoLine(card, "Name", r.firstName || r.displayName || "Not provided");
+      infoLine(card, "Method", r.method || "—");
+      infoLine(card, "Account", r.wallet || "—");
+      infoLine(card, "Requested", fmtDate(r.createdAt));
+      const actions = el("div", "row-actions");
+      const accept = el("button", "", "Accept"); accept.type = "button"; accept.disabled = st === "accepted";
+      accept.onclick = async () => {
+        if (!confirm("Accept this withdrawal request?")) return;
+        try { await update(ref(db, `withdrawals/${uid}/${rid}`), { status: "accepted", reviewedAt: Date.now() }); }
+        catch { toast("Could not update status."); }
+      };
+      const reject = el("button", "danger", "Reject"); reject.type = "button"; reject.disabled = st === "rejected";
+      reject.onclick = async () => {
+        if (!confirm("Reject this withdrawal request?")) return;
+        try { await update(ref(db, `withdrawals/${uid}/${rid}`), { status: "rejected", reviewedAt: Date.now() }); }
+        catch { toast("Could not update status."); }
+      };
+      actions.append(accept, reject); card.append(actions); host.append(card);
+    });
+  });
+
+  addTaskRow();
+  addChannelRow();
+  showAdminPage("adminSettings");
+}
+
+// ===== START =====
+loadUserPanel();
+if (isAdmin) initAdmin();
+</script>
+</body>
+</html>
